@@ -616,7 +616,7 @@ Criando regra de saída
   ```
 $resourceGroup = "rg-ntier"
 $location = "eastus"
-$ipFrontLbBusiness = "10.5.2.7"
+$ipFrontLbBusiness = "<IP do lbBusiness>"
    
    
 echo "Criando regras para nsgWeb"
