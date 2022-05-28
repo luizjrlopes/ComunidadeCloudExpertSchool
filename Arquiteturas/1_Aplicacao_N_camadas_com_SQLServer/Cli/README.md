@@ -564,13 +564,15 @@ for ($i = 1; $i -lt 4 ; $i++)
 }
  ```
 
-   Após a criação das vms, inserir comando abaixo em cada vm pelo Run comand no portal e desligar e ligar vm's novamente.
+  Após a criação das vms, inserir comando abaixo em cada vm pelo **Run Command Script** no portal. 
 
+   **Run Command Script**  
+   ```
    powershell.exe Install-WindowsFeature -name Web-Server -IncludeManagementTools
    powershell.exe Remove-Item -Path 'C:\inetpub\wwwroot\iisstart.htm'
    powershell.exe Add-Content -Path 'C:\inetpub\wwwroot\iisstart.htm' -Value $($env:computername)
-
-## Adicionar máquinas virtuais ao pool de back-end
+   ```
+   ## Adicionar máquinas virtuais ao pool de back-end
 
    Adicione as máquinas virtuais ao pool de back-end com **az network nic ip-config address-pool add.**
 
