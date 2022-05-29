@@ -538,30 +538,30 @@ dotnet new console --name MessagePublisher --output .
 
 1.  No método **Main** , adicione o seguinte código para inicializar o **_client_** do tipo **ServiceBusClient** que fornecerá conectividade ao namespace do Service Bus e o **sender** que será responsável pelo envio de mensagens:
 
-    ```csharp
-    client = new ServiceBusClient(storageConnectionString);
-    sender = client.CreateSender(queueName);  
-    ```
+```csharp
+client = new ServiceBusClient(storageConnectionString);
+sender = client.CreateSender(queueName);  
+```
 
-    > **Nota**: Conforme mencionado anteriormente, o cliente do Service Bus é seguro para armazenar em cache e usar como um singleton durante a vida útil do aplicativo. Essa é considerada uma das melhores práticas ao publicar e ler mensagens regularmente.
+> **Nota**: Conforme mencionado anteriormente, o cliente do Service Bus é seguro para armazenar em cache e usar como um singleton durante a vida útil do aplicativo. Essa é considerada uma das melhores práticas ao publicar e ler mensagens regularmente.
 
-15.  No método **Main**, adicione o seguinte código para criar um objeto **ServiceBusMessageBatch** , que permitirá combinar várias mensagens em um lote usando o método **TryAddMessage**:
+1.  No método **Main**, adicione o seguinte código para criar um objeto **ServiceBusMessageBatch** , que permitirá combinar várias mensagens em um lote usando o método **TryAddMessage**:
 
-    ```csharp
-    using ServiceBusMessageBatch messageBatch = await sender.CreateMessageBatchAsync();
-    ```
+```csharp
+using ServiceBusMessageBatch messageBatch = await sender.CreateMessageBatchAsync();
+ ```
 
 1.  No método **Main**, adicione as seguintes linhas de código para adicionar mensagens a um lote e lançar uma exceção se o tamanho de uma mensagem exceder os limites suportados pelo lote:
 
-    ```csharp
-    for (int i = 1; i <= numOfMessages; i++)
+```csharp
+for (int i = 1; i <= numOfMessages; i++)
+{
+    if (!messageBatch.TryAddMessage(new ServiceBusMessage($"Message {i}")))
     {
-        if (!messageBatch.TryAddMessage(new ServiceBusMessage($"Message {i}")))
-        {
-            throw new Exception($"The message {i} is too large to fit in the batch.");
-        }
+        throw new Exception($"The message {i} is too large to fit in the batch.");
     }
-    ```
+}
+```
 
 1.  No método **Main**, adicione as seguintes linhas de código para criar um bloco **try**, com o **sender** publicando mensagens de forma assíncrona no lote para a queue de destino:
 
@@ -584,31 +584,32 @@ dotnet new console --name MessagePublisher --output .
     ```
 Revise o método **Main** , que agora deve consistir no seguinte código: 
 
-    ```csharp
-    public static async Task Main(string[] args)
+ ```csharp
+
+public static async Task Main(string[] args)
+{
+    client = new ServiceBusClient(storageConnectionString);
+    sender = client.CreateSender(queueName);
+    using ServiceBusMessageBatch messageBatch = await sender.CreateMessageBatchAsync();
+    for (int i = 1; i <= numOfMessages; i++)
     {
-        client = new ServiceBusClient(storageConnectionString);
-        sender = client.CreateSender(queueName);
-        using ServiceBusMessageBatch messageBatch = await sender.CreateMessageBatchAsync();
-        for (int i = 1; i <= numOfMessages; i++)
+        if (!messageBatch.TryAddMessage(new ServiceBusMessage($"Message {i}")))
         {
-            if (!messageBatch.TryAddMessage(new ServiceBusMessage($"Message {i}")))
-            {
-                throw new Exception($"The message {i} is too large to fit in the batch.");
-            }
-        }
-        try
-        {
-            await sender.SendMessagesAsync(messageBatch);
-            Console.WriteLine($"A batch of {numOfMessages} messages has been published to the queue.");
-        }
-        finally
-        {
-            await sender.DisposeAsync();
-            await client.DisposeAsync();
+            throw new Exception($"The message {i} is too large to fit in the batch.");
         }
     }
-    ```
+    try
+    {
+        await sender.SendMessagesAsync(messageBatch);
+        Console.WriteLine($"A batch of {numOfMessages} messages has been published to the queue.");
+    }
+    finally
+    {
+        await sender.DisposeAsync();
+        await client.DisposeAsync();
+    }
+}
+```
 
 1. Salve o  arquivo **Program.cs**.
 
